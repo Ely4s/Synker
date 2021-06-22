@@ -19,8 +19,14 @@ find_package(Boost 1.76.0 COMPONENTS system filesystem thread REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIR})
 
+#find spdlog
+if (NOT TARGET spdlog)
+    # Stand-alone build
+    find_package(spdlog REQUIRED)
+endif ()
+
 #executable
 add_executable (Synker src/main.cpp)
 
 #libraries linking
-target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES} spdlog::spdlog)
