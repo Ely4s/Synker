@@ -11,5 +11,16 @@ SET(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAGS
 #include
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
+#find boost
+set(Boost_USE_STATIC_LIBS ON)
+set(Boost_INCLUDE_DIR /usr/local/src/boost_1_46_1)
+set(Boost_LIBRARY_DIR /usr/local/src/boost_1_46_1/stage/lib)
+find_package(Boost 1.76.0 COMPONENTS system filesystem thread REQUIRED)
+include_directories(${Boost_INCLUDE_DIR})
+link_directories(${Boost_LIBRARY_DIR})
+
 #executable
 add_executable (Synker src/main.cpp)
+
+#libraries linking
+target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
