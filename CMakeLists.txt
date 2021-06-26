@@ -26,7 +26,7 @@ if (NOT TARGET spdlog)
 endif ()
 
 #executable
-add_executable (Synker src/main.cpp src/Node/Node.cpp include/Node/Node.h src/Node/File.cpp include/Node/File.h src/Node/Directory.cpp include/Node/Directory.h)
+add_executable (Synker src/main.cpp src/Node/Node.cpp include/Node/Node.h src/Node/File.cpp include/Node/File.h src/Node/Directory.cpp include/Node/Directory.h src/Profiler/Profiler.cpp include/Profiler/Profiler.h)
 
 #libraries linking
 target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES} spdlog::spdlog)
