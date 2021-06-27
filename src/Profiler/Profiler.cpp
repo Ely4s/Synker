@@ -11,6 +11,7 @@
 #include "Node/File.h"
 #include "Node/Directory.h"
 #include "Utils/string.h"
+#include "Utils/Chrono.h"
 
 #include "Profiler/Profiler.h"
 
@@ -38,14 +39,10 @@ std::pair<std::vector<boost::filesystem::path>, std::vector<boost::filesystem::p
 	}
 
 	spdlog::info("[profiling : {}] start of profiling", Utils::quoted(root_directory.get_path().string()));
-
-	std::chrono::time_point<std::chrono::system_clock> start_time_profiling, end_time_profiling;
-	start_time_profiling = std::chrono::system_clock::now();
+	Chrono profiling_chrono(true);
 
 	spdlog::info("[profiling : {}] start of profiling iteration", Utils::quoted(root_directory.get_path().string()));
-
-	std::chrono::time_point<std::chrono::system_clock> start_time_profiling_iteration, end_time_profiling_iteration;
-	start_time_profiling_iteration = std::chrono::system_clock::now();
+	Chrono profiling_iteration_chrono(true);
 
 	boost::system::error_code ec, no_error;
 	boost::filesystem::recursive_directory_iterator node_it (root_directory.get_path(), ec), node_end;
@@ -121,14 +118,11 @@ std::pair<std::vector<boost::filesystem::path>, std::vector<boost::filesystem::p
 		node_it.increment(ec);
 	}
 
-	end_time_profiling_iteration = std::chrono::system_clock::now();
-	std::chrono::duration<double> elapsed_seconds_profiling_iteration = end_time_profiling_iteration - start_time_profiling_iteration;
-	spdlog::info("[profiling : {}] end of profiling iteration ({} valid and {} unvalid node(s) found in {} second(s))", Utils::quoted(root_directory.get_path().string()), valid_paths.size(), unvalid_paths.size(), elapsed_seconds_profiling_iteration.count());
+	profiling_iteration_chrono.stop();
+	spdlog::info("[profiling : {}] end of profiling iteration ({} valid and {} unvalid node(s) found in {} second(s))", Utils::quoted(root_directory.get_path().string()), valid_paths.size(), unvalid_paths.size(), profiling_iteration_chrono.get_result());
 
 	spdlog::info("[profiling : {}] start of duplicated path removal", Utils::quoted(root_directory.get_path().string()));
-
-	std::chrono::time_point<std::chrono::system_clock> start_time_duplicated_removal, end_time_duplicated_removal;
-	start_time_duplicated_removal = std::chrono::system_clock::now();
+	Chrono duplicated_removal_chrono(true);
 
 	//remove all potentially duplicated paths
 	std::vector<std::reference_wrapper<std::vector<boost::filesystem::path>>> paths_vector = {valid_paths, unvalid_paths};
@@ -145,14 +139,11 @@ std::pair<std::vector<boost::filesystem::path>, std::vector<boost::filesystem::p
 		nbr_removed_path += size_before_removal - size_after_removal;
 	}
 
-	end_time_duplicated_removal = std::chrono::system_clock::now();
-	std::chrono::duration<double> elapsed_seconds_duplicated_removal = end_time_duplicated_removal - start_time_duplicated_removal;
-	spdlog::info("[profiling : {}] end of duplicated path removal ({} path(s) removed in {} second(s))", Utils::quoted(root_directory.get_path().string()), nbr_removed_path, elapsed_seconds_duplicated_removal.count());
+	duplicated_removal_chrono.stop();
+	spdlog::info("[profiling : {}] end of duplicated path removal ({} path(s) removed in {} second(s))", Utils::quoted(root_directory.get_path().string()), nbr_removed_path, duplicated_removal_chrono.get_result());
 
-	end_time_profiling = std::chrono::system_clock::now();
-	std::chrono::duration<double> elapsed_seconds_profiling = end_time_profiling - start_time_profiling;
-
-	spdlog::info("[profiling : {}] end of profiling (done in {} second(s))", Utils::quoted(root_directory.get_path().string()), elapsed_seconds_profiling.count());
+	profiling_chrono.stop();
+	spdlog::info("[profiling : {}] end of profiling (done in {} second(s))", Utils::quoted(root_directory.get_path().string()), profiling_chrono.get_result());
 
 	return {valid_paths, unvalid_paths};
 }
