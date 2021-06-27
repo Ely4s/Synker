@@ -5,6 +5,7 @@
 #include <chrono>
 
 #include <boost/format.hpp>
+#include <boost/system/error_code.hpp>
 #include "spdlog/spdlog.h"
 
 #include "Node/Node.h"
@@ -14,6 +15,8 @@
 #include "Utils/Chrono.h"
 
 #include "Profiler/Profiler.h"
+
+using namespace boost::system::errc;
 
 std::pair<std::vector<boost::filesystem::path>, std::vector<boost::filesystem::path>> Profiler::profile(const boost::filesystem::path & path)
 {
@@ -55,21 +58,21 @@ std::pair<std::vector<boost::filesystem::path>, std::vector<boost::filesystem::p
 		{
 			unvalid_paths.push_back(node_it->path());
 			node_it.no_push();
-			spdlog::warn("[profiling : {}] can't add node path {} to the profile : {}", Utils::quoted(root_directory.get_path().string()), Utils::quoted(node_it->path().string()), "Permission denied");
+			spdlog::warn("[profiling : {}] can't add node path {} to the profile : {}", Utils::quoted(root_directory.get_path().string()), Utils::quoted(node_it->path().string()), make_error_code(permission_denied).message());
 		}
 		//node refers to an undefined node type
 		if(Node::get_guessed_type(node_it->path()) == Node::NODE)
 		{
 			unvalid_paths.push_back(node_it->path());
 			node_it.no_push();
-			spdlog::warn("[profiling : {}] can't add node path {} to the profile : {}", Utils::quoted(root_directory.get_path().string()), Utils::quoted(node_it->path().string()), "Undefined node type");
+			spdlog::warn("[profiling : {}] can't add node path {} to the profile : {}", Utils::quoted(root_directory.get_path().string()), Utils::quoted(node_it->path().string()), make_error_code(not_supported).message());
 		}
 		//node refers to a symlink
 		else if(Node::get_guessed_type(node_it->path()) == Node::SYMLINK)
 		{
 			unvalid_paths.push_back(node_it->path());
 			node_it.no_push();
-			spdlog::warn("[profiling : {}] can't add symlink file path {} to the profile : {}", Utils::quoted(root_directory.get_path().string()), Utils::quoted(node_it->path().string()), "Symlink not supported");
+			spdlog::warn("[profiling : {}] can't add symlink file path {} to the profile : {}", Utils::quoted(root_directory.get_path().string()), Utils::quoted(node_it->path().string()), make_error_code(not_supported).message());
 		}
 		//node refers to a file
 		else if(Node::get_guessed_type(node_it->path()) == Node::FILE)
@@ -87,7 +90,7 @@ std::pair<std::vector<boost::filesystem::path>, std::vector<boost::filesystem::p
 			{
 				unvalid_paths.push_back(file.get_path());
 				node_it.no_push();
-				spdlog::warn("[profiling : {}] can't add file path {} to the profile : {}", Utils::quoted(root_directory.get_path().string()), Utils::quoted(file.get_path().string()), "Permission denied");
+				spdlog::warn("[profiling : {}] can't add file path {} to the profile : {}", Utils::quoted(root_directory.get_path().string()), Utils::quoted(file.get_path().string()), make_error_code(permission_denied).message());
 			}
 		}
 		//node refers to a directory
