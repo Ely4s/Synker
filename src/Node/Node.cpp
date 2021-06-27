@@ -26,8 +26,16 @@ bool Node::get_is_exists()
 
 Node::Type Node::get_guessed_type(const boost::filesystem::path &path)
 {
-	if (boost::filesystem::is_regular_file(path))	{return Node::Type::FILE;}
-	if (boost::filesystem::is_directory(path))   	{return Node::Type::DIRECTORY;}
+	try
+	{
+		if (boost::filesystem::is_symlink(path))		{return Node::Type::SYMLINK;}
+		if (boost::filesystem::is_regular_file(path))	{return Node::Type::FILE;}
+		if (boost::filesystem::is_directory(path))   	{return Node::Type::DIRECTORY;}
+	}
+	catch(const std::exception & e)
+	{
+		return Node::Type::ACCES_DENIED;
+	}
 
 	return Node::Type::NODE;
 }

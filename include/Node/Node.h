@@ -19,7 +19,7 @@ class Node
 {
 	public:
 
-	enum Type {NODE, FILE, DIRECTORY};
+	enum Type {NODE, FILE, DIRECTORY, SYMLINK, ACCES_DENIED};
 	enum PathType {DEFAULT, ABSOLUTE, RELATIVE};
 	enum PermissionType {READ, WRITE, EXECUTE};
 	enum PermissionOwner {USER, GROUP, OTHER};
