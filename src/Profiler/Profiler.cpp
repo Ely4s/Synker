@@ -21,7 +21,7 @@ using namespace boost::system::errc;
 std::pair<std::vector<boost::filesystem::path>, std::vector<boost::filesystem::path>> Profiler::profile(const boost::filesystem::path & path)
 {
 	std::vector<boost::filesystem::path> valid_paths;
-	std::vector<boost::filesystem::path> unvalid_paths;
+	std::vector<boost::filesystem::path> invalid_paths;
 
 	//path not refers to a directory
 	if(Node::get_guessed_type(path) != Node::DIRECTORY)
@@ -56,21 +56,21 @@ std::pair<std::vector<boost::filesystem::path>, std::vector<boost::filesystem::p
 		//node refers to an access denied node
 		if(Node::get_guessed_type(node_it->path()) == Node::ACCES_DENIED)
 		{
-			unvalid_paths.push_back(node_it->path());
+			invalid_paths.push_back(node_it->path());
 			node_it.no_push();
 			spdlog::warn("[profiling : {}] can't add node path {} to the profile : {}", Utils::quoted(root_directory.get_path().string()), Utils::quoted(node_it->path().string()), make_error_code(permission_denied).message());
 		}
 		//node refers to an undefined node type
 		if(Node::get_guessed_type(node_it->path()) == Node::NODE)
 		{
-			unvalid_paths.push_back(node_it->path());
+			invalid_paths.push_back(node_it->path());
 			node_it.no_push();
 			spdlog::warn("[profiling : {}] can't add node path {} to the profile : {}", Utils::quoted(root_directory.get_path().string()), Utils::quoted(node_it->path().string()), make_error_code(not_supported).message());
 		}
 		//node refers to a symlink
 		else if(Node::get_guessed_type(node_it->path()) == Node::SYMLINK)
 		{
-			unvalid_paths.push_back(node_it->path());
+			invalid_paths.push_back(node_it->path());
 			node_it.no_push();
 			spdlog::warn("[profiling : {}] can't add symlink file path {} to the profile : {}", Utils::quoted(root_directory.get_path().string()), Utils::quoted(node_it->path().string()), make_error_code(not_supported).message());
 		}
@@ -88,7 +88,7 @@ std::pair<std::vector<boost::filesystem::path>, std::vector<boost::filesystem::p
 			//file hasn't user read and write permissions
 			else
 			{
-				unvalid_paths.push_back(file.get_path());
+				invalid_paths.push_back(file.get_path());
 				node_it.no_push();
 				spdlog::warn("[profiling : {}] can't add file path {} to the profile : {}", Utils::quoted(root_directory.get_path().string()), Utils::quoted(file.get_path().string()), make_error_code(permission_denied).message());
 			}
@@ -111,7 +111,7 @@ std::pair<std::vector<boost::filesystem::path>, std::vector<boost::filesystem::p
 			//can access to directory child nodes
 			else
 			{
-				unvalid_paths.push_back(directory.get_path());
+				invalid_paths.push_back(directory.get_path());
 				spdlog::warn("[profiling : {}] can't add directory path {} to the profile : {}", Utils::quoted(root_directory.get_path().string()), Utils::quoted(directory.get_path().string()), ec_tmp.message());
 				//go to directory sibling node
 				node_it.no_push();
@@ -122,13 +122,13 @@ std::pair<std::vector<boost::filesystem::path>, std::vector<boost::filesystem::p
 	}
 
 	profiling_iteration_chrono.stop();
-	spdlog::info("[profiling : {}] end of profiling iteration ({} valid and {} unvalid node(s) found in {} second(s))", Utils::quoted(root_directory.get_path().string()), valid_paths.size(), unvalid_paths.size(), profiling_iteration_chrono.get_result());
+	spdlog::info("[profiling : {}] end of profiling iteration ({} valid and {} invalid node(s) found in {} second(s))", Utils::quoted(root_directory.get_path().string()), valid_paths.size(), invalid_paths.size(), profiling_iteration_chrono.get_result());
 
 	spdlog::info("[profiling : {}] start of duplicated path removal", Utils::quoted(root_directory.get_path().string()));
 	Chrono duplicated_removal_chrono(true);
 
 	//remove all potentially duplicated paths
-	std::vector<std::reference_wrapper<std::vector<boost::filesystem::path>>> paths_vector = {valid_paths, unvalid_paths};
+	std::vector<std::reference_wrapper<std::vector<boost::filesystem::path>>> paths_vector = {valid_paths, invalid_paths};
 	size_t size_before_removal = 0, size_after_removal = 0, nbr_removed_path = 0;
 	for(auto & paths : paths_vector)
 	{
@@ -137,6 +137,7 @@ std::pair<std::vector<boost::filesystem::path>, std::vector<boost::filesystem::p
 		std::sort(paths.get().begin(), paths.get().end());
 		auto last = std::unique(paths.get().begin(), paths.get().end());
 		paths.get().erase(last, paths.get().end());
+		paths.get().shrink_to_fit();
 
 		size_after_removal = paths.get().size();
 		nbr_removed_path += size_before_removal - size_after_removal;
@@ -148,5 +149,5 @@ std::pair<std::vector<boost::filesystem::path>, std::vector<boost::filesystem::p
 	profiling_chrono.stop();
 	spdlog::info("[profiling : {}] end of profiling (done in {} second(s))", Utils::quoted(root_directory.get_path().string()), profiling_chrono.get_result());
 
-	return {valid_paths, unvalid_paths};
+	return {valid_paths, invalid_paths};
 }
