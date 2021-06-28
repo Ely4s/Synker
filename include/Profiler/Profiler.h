@@ -10,6 +10,16 @@
 #include <boost/filesystem.hpp>
 
 /**
+ * struct 'ProfilerResult' store result of method 'profile()' of class 'Profiler'.
+ * So, it contain valid and invalid descendants nodes path
+ */
+struct ProfilerResult
+{
+	const std::vector<boost::filesystem::path> valid_paths;
+	const std::vector<boost::filesystem::path> invalid_paths;
+};
+
+/**
  * class 'Profiler' is used to recover all the folders and files, with write and read rights,
  * contained in the source folder and the target folder.
  */
