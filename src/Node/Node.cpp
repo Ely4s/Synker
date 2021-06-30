@@ -28,16 +28,17 @@ Node::Type Node::get_guessed_type(const boost::filesystem::path &path)
 {
 	try
 	{
-		if (boost::filesystem::is_symlink(path))		{return Node::Type::SYMLINK;}
 		if (boost::filesystem::is_regular_file(path))	{return Node::Type::FILE;}
 		if (boost::filesystem::is_directory(path))   	{return Node::Type::DIRECTORY;}
+		if (boost::filesystem::is_symlink(path))		{return Node::Type::SYMLINK;}
+		if (boost::filesystem::is_other(path))   		{return Node::Type::NOT_SUPPORTED;}
+
+		return Node::Type::NODE_NOT_FOUND;
 	}
 	catch(const std::exception & e)
 	{
-		return Node::Type::ACCES_DENIED;
+		return Node::Type::ACCESS_DENIED;
 	}
-
-	return Node::Type::NODE;
 }
 
 boost::filesystem::path Node::get_path(PathType path_type)
@@ -84,9 +85,13 @@ std::string Node::get_type_str()
 {
 	switch (get_type())
 	{
-		case FILE      	: return "File";
-		case DIRECTORY	: return "Directory";
-		default       	: return "Node";
+		case FILE          		: return "File";
+		case DIRECTORY     		: return "Directory";
+		case SYMLINK       		: return "Symlink";
+		case NOT_SUPPORTED 		: return "not supported";
+		case NODE_NOT_FOUND    	: return "node not found";
+		case ACCESS_DENIED 		: return "access denied";
+		default            		: return "Node";
 	}
 }
 

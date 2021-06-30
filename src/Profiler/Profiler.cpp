@@ -53,29 +53,38 @@ std::pair<std::vector<boost::filesystem::path>, std::vector<boost::filesystem::p
 	//iterate over all root_directory descendants
 	while(node_it != node_end)
 	{
+		Node::Type node_it_type = Node::get_guessed_type(node_it->path());
+
 		//node refers to an access denied node
-		if(Node::get_guessed_type(node_it->path()) == Node::ACCES_DENIED)
+		if(node_it_type == Node::NODE_NOT_FOUND)
+		{
+			invalid_paths.push_back(node_it->path());
+			node_it.no_push();
+			spdlog::warn("[profiling : {}] can't add node path {} to the profile : {}", Utils::quoted(root_directory.get_path().string()), Utils::quoted(node_it->path().string()), "Not found");
+		}
+		//node refers to an access denied node
+		if(node_it_type == Node::ACCESS_DENIED)
 		{
 			invalid_paths.push_back(node_it->path());
 			node_it.no_push();
 			spdlog::warn("[profiling : {}] can't add node path {} to the profile : {}", Utils::quoted(root_directory.get_path().string()), Utils::quoted(node_it->path().string()), make_error_code(permission_denied).message());
 		}
-		//node refers to an undefined node type
-		if(Node::get_guessed_type(node_it->path()) == Node::NODE)
+		//node refers to an unsupported node type
+		else if(node_it_type == Node::NOT_SUPPORTED)
 		{
 			invalid_paths.push_back(node_it->path());
 			node_it.no_push();
 			spdlog::warn("[profiling : {}] can't add node path {} to the profile : {}", Utils::quoted(root_directory.get_path().string()), Utils::quoted(node_it->path().string()), make_error_code(not_supported).message());
 		}
 		//node refers to a symlink
-		else if(Node::get_guessed_type(node_it->path()) == Node::SYMLINK)
+		else if(node_it_type == Node::SYMLINK)
 		{
 			invalid_paths.push_back(node_it->path());
 			node_it.no_push();
 			spdlog::warn("[profiling : {}] can't add symlink file path {} to the profile : {}", Utils::quoted(root_directory.get_path().string()), Utils::quoted(node_it->path().string()), make_error_code(not_supported).message());
 		}
 		//node refers to a file
-		else if(Node::get_guessed_type(node_it->path()) == Node::FILE)
+		else if(node_it_type == Node::FILE)
 		{
 			File file(node_it->path());
 
@@ -94,7 +103,7 @@ std::pair<std::vector<boost::filesystem::path>, std::vector<boost::filesystem::p
 			}
 		}
 		//node refers to a directory
-		else if(Node::get_guessed_type(node_it->path()) == Node::DIRECTORY)
+		else if(node_it_type == Node::DIRECTORY)
 		{
 			Directory directory(node_it->path());
 
