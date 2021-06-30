@@ -18,7 +18,7 @@
 
 using namespace boost::system::errc;
 
-std::pair<std::vector<boost::filesystem::path>, std::vector<boost::filesystem::path>> Profiler::profile(const boost::filesystem::path & path)
+ProfilerResult Profiler::profile(const boost::filesystem::path & path)
 {
 	std::vector<boost::filesystem::path> valid_paths;
 	std::vector<boost::filesystem::path> invalid_paths;
@@ -158,5 +158,5 @@ std::pair<std::vector<boost::filesystem::path>, std::vector<boost::filesystem::p
 	profiling_chrono.stop();
 	spdlog::info("[profiling : {}] end of profiling (done in {} second(s))", Utils::quoted(root_directory.get_path().string()), profiling_chrono.get_result());
 
-	return {valid_paths, invalid_paths};
+	return {std::move(valid_paths), std::move(invalid_paths)};
 }

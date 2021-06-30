@@ -28,7 +28,7 @@ class Profiler
 
 public:
 
-	static std::pair<std::vector<boost::filesystem::path>, std::vector<boost::filesystem::path>> profile(const boost::filesystem::path & path);
+	static ProfilerResult profile(const boost::filesystem::path & path);
 
 private:
 
