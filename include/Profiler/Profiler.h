@@ -32,8 +32,9 @@ public:
 
 private:
 
-
-
+	static void directory_verification(const boost::filesystem::path & directory_path);
+	static void iterate(const boost::filesystem::path & directory_path, std::vector<boost::filesystem::path> & valid_paths, std::vector<boost::filesystem::path> & invalid_paths);
+	static void remove_duplicated_paths(const boost::filesystem::path & path, std::vector<boost::filesystem::path> & valid_paths, std::vector<boost::filesystem::path> & invalid_paths);
 };
 
 #endif //SYNKER_PROFILER_H
