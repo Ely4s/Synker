@@ -18,22 +18,29 @@
 
 using namespace boost::system::errc;
 
-ProfilerResult Profiler::profile(const boost::filesystem::path & path)
+ProfilerResult Profiler::profile(const boost::filesystem::path & path1, const boost::filesystem::path & path2)
 {
-	std::vector<boost::filesystem::path> valid_paths;
-	std::vector<boost::filesystem::path> invalid_paths;
+	std::vector<ProfilerResultElement> result_elements;
 
-	spdlog::info("[profiling : {}] start of profiling", Utils::quoted(path.string()));
-	Chrono profiling_chrono(true);
+	for(const auto & path : {path1, path2})
+	{
+		std::vector<boost::filesystem::path> valid_paths;
+		std::vector<boost::filesystem::path> invalid_paths;
 
-	directory_verification(path);
-	iterate(path, valid_paths, invalid_paths);
-	remove_duplicated_paths(path, valid_paths, invalid_paths);
+		spdlog::info("[profiling : {}] start of profiling", Utils::quoted(path.string()));
+		Chrono profiling_chrono(true);
 
-	profiling_chrono.stop();
-	spdlog::info("[profiling : {}] end of profiling (done in {:.6f} second(s))", Utils::quoted(path.string()), profiling_chrono.get_result());
+		directory_verification(path);
+		iterate(path, valid_paths, invalid_paths);
+		remove_duplicated_paths(path, valid_paths, invalid_paths);
 
-	return {std::move(valid_paths), std::move(invalid_paths)};
+		profiling_chrono.stop();
+		spdlog::info("[profiling : {}] end of profiling (done in {:.6f} second(s))", Utils::quoted(path.string()), profiling_chrono.get_result());
+
+		result_elements.push_back({std::move(valid_paths), std::move(invalid_paths)});
+	}
+
+	return {std::move(result_elements.at(0)), std::move(result_elements.at(1))};
 }
 
 void Profiler::directory_verification(const boost::filesystem::path & directory_path)

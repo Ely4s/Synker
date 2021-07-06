@@ -10,13 +10,23 @@
 #include <boost/filesystem.hpp>
 
 /**
- * struct 'ProfilerResult' store result of method 'profile()' of class 'Profiler'.
+ * struct 'ProfilerResultElement' store result of method 'profile()' of class 'Profiler'.
  * So, it contain valid and invalid descendants nodes path
+ */
+struct ProfilerResultElement
+{
+	std::vector<boost::filesystem::path> valid_paths;
+	std::vector<boost::filesystem::path> invalid_paths;
+};
+
+/**
+ * struct 'ProfilerResult' store an object 'ProfilerResultElement'
+ * for the source and an other one for the target.
  */
 struct ProfilerResult
 {
-	const std::vector<boost::filesystem::path> valid_paths;
-	const std::vector<boost::filesystem::path> invalid_paths;
+	ProfilerResultElement source;
+	ProfilerResultElement target;
 };
 
 /**
@@ -28,7 +38,7 @@ class Profiler
 
 public:
 
-	static ProfilerResult profile(const boost::filesystem::path & path);
+	static ProfilerResult profile(const boost::filesystem::path & path1, const boost::filesystem::path & path2);
 
 private:
 
